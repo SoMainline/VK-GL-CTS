@@ -53,6 +53,9 @@ class SDKEnv:
 		buildToolsPath	= os.path.join(path, "build-tools")
 		versions		= []
 
+		# 31 doesn't ship with dx anymore - update script to use d8!
+		return [(30, 0, 3)]
+
 		if os.path.exists(buildToolsPath):
 			for item in os.listdir(buildToolsPath):
 				m = re.match(r'^([0-9]+)\.([0-9]+)\.([0-9]+)$', item)
@@ -206,7 +209,7 @@ class Configuration:
 		androidBuildTools = ["aapt", "zipalign", "dx"]
 		for tool in androidBuildTools:
 			if which(tool, [self.env.sdk.getBuildToolsPath()]) == None:
-				raise Exception("Missing Android build tool: %s" % toolPath)
+				raise Exception("Missing Android build tool: %s" % tool)
 
 		requiredToolsInPath = ["javac", "jar", "jarsigner", "keytool"]
 		for tool in requiredToolsInPath:
