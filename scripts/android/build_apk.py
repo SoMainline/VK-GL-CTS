@@ -203,7 +203,7 @@ class Configuration:
 		if self.env.sdk.buildToolsVersion == (0,0,0):
 			raise Exception("No build tools directory found at %s" % os.path.join(self.env.sdk.path, "build-tools"))
 
-		androidBuildTools = ["aapt", "zipalign", "dx"]
+		androidBuildTools = ["aapt", "zipalign", "d8"]
 		for tool in androidBuildTools:
 			if which(tool, [self.env.sdk.getBuildToolsPath()]) == None:
 				raise Exception("Missing Android build tool: %s" % tool)
@@ -426,8 +426,11 @@ class PackageDescription:
 	def getClassesJarPath (self):
 		return [BuildRoot(), self.appDirName, "bin", "classes.jar"]
 
+	def getClassesDexFolder (self):
+		return [BuildRoot(), self.appDirName, "bin"]
+
 	def getClassesDexPath (self):
-		return [BuildRoot(), self.appDirName, "bin", "classes.dex"]
+		return self.getClassesDexFolder() + ["classes.dex"]
 
 	def getAPKPath (self):
 		return [BuildRoot(), self.appDirName, "bin", self.appName + ".apk"]
@@ -549,18 +552,17 @@ class BuildDex (BuildStep):
 		return [self.package.getClassesDexPath()]
 
 	def update (self, config):
-		dxPath		= which("dx", [config.env.sdk.getBuildToolsPath()])
+		d8Path		= which("d8", [config.env.sdk.getBuildToolsPath()])
 		srcPaths	= resolvePaths(config, self.getInputs())
-		dexPath		= resolvePath(config, self.package.getClassesDexPath())
+		dexFolder	= resolvePath(config, self.package.getClassesDexFolder())
 		jarPaths	= [resolvePath(config, self.package.getClassesJarPath())]
 
 		for lib in self.libraries:
 			jarPaths.append(resolvePath(config, lib.getClassesJarPath()))
 
 		executeAndLog(config, [
-				dxPath,
-				"--dex",
-				"--output", dexPath
+				d8Path,
+				"--output", dexFolder
 			] + jarPaths)
 
 class CreateKeystore (BuildStep):
